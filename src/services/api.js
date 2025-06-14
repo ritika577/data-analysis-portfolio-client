@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configuration from environment variables
 const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_URL || 'https://dolomite-powerful-freeze.glitch.me',
+  BASE_URL: import.meta.env.VITE_API_URL || 'https://mulberry-tasteful-duchess.glitch.me',
   TOKEN: import.meta.env.VITE_API_SECRET_KEY
 };
 
