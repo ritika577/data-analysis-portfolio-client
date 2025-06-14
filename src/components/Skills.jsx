@@ -1,20 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Grid, Paper, Chip } from '@mui/material';
+import { Box, Typography, Grid, Paper, Chip, CircularProgress, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { skillApi } from '../services/api';
 
 const Skills = () => {
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchSkills = async () => {
+      console.log('Fetching skills...');
+      setLoading(true);
+      setError(null);
+      
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/skills`);
-        setSkills(response.data);
-        setLoading(false);
+        console.log('Calling skillApi.getAll()...');
+        const response = await skillApi.getAll();
+        console.log('Skills API Response:', response);
+        
+        if (response && response.data) {
+          console.log('Setting skills data:', response.data);
+          setSkills(Array.isArray(response.data) ? response.data : []);
+        } else {
+          console.warn('Unexpected response format:', response);
+          setSkills([]);
+        }
       } catch (error) {
-        console.error('Error fetching skills:', error);
+        console.error('Error in fetchSkills:', {
+          message: error.message,
+          status: error.status,
+          url: error.url,
+          responseData: error.responseData
+        });
+        setError(`Failed to load skills: ${error.message || 'Unknown error'}`);
+      } finally {
         setLoading(false);
       }
     };
@@ -45,7 +65,15 @@ const Skills = () => {
         </Typography>
         
         {loading ? (
-          <Typography textAlign="center">Loading skills...</Typography>
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+            <CircularProgress color="primary" />
+          </Box>
+        ) : error ? (
+          <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
+        ) : skills.length === 0 ? (
+          <Typography variant="body1" align="center" color="text.secondary">
+            No skills to display at the moment.
+          </Typography>
         ) : (
           <Grid container spacing={4}>
             {skills.map((category) => (

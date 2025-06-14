@@ -44,6 +44,7 @@ const Navbar = () => {
     { label: 'Home', path: '/' },
     { label: 'Projects', path: '/projects' },
     { label: 'Skills', path: '/skills' },
+    { label: 'Certifications', path: '/certifications' },
     { label: 'Contact', path: '/contact' },
   ];
 

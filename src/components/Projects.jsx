@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Grid, Card, CardContent, Typography, Button, CardMedia, Chip, Container } from '@mui/material';
+import { Box, Grid, Card, CardContent, Typography, Button, CardMedia, Chip, Container, CircularProgress, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { projectApi } from '../services/api';
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -12,13 +12,31 @@ const Projects = () => {
 
   useEffect(() => {
     const fetchProjects = async () => {
+      console.log('Fetching projects...');
+      setLoading(true);
+      setError(null);
+      
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects`);
-        setProjects(response.data || []);
-        setLoading(false);
+        console.log('Calling projectApi.getAll()...');
+        const response = await projectApi.getAll();
+        console.log('Projects API Response:', response);
+        
+        if (response && response.data) {
+          console.log('Setting projects data:', response.data);
+          setProjects(Array.isArray(response.data) ? response.data : []);
+        } else {
+          console.warn('Unexpected response format:', response);
+          setProjects([]);
+        }
       } catch (error) {
-        console.error('Error fetching projects:', error);
-        setError('Failed to load projects. Please try again later.');
+        console.error('Error in fetchProjects:', {
+          message: error.message,
+          status: error.status,
+          url: error.url,
+          responseData: error.responseData
+        });
+        setError(`Failed to load projects: ${error.message || 'Unknown error'}`);
+      } finally {
         setLoading(false);
       }
     };
@@ -87,10 +105,7 @@ const Projects = () => {
   };
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      bgcolor: 'background.paper'
-    }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <Typography 
           variant="h2" 
@@ -106,22 +121,15 @@ const Projects = () => {
           Featured Projects
         </Typography>
         
-        {error ? (
-          <Typography 
-            variant="body1" 
-            color="error" 
-            align="center" 
-            sx={{ py: 4 }}
-          >
-            {error}
-          </Typography>
-        ) : loading ? (
-          <Typography 
-            variant="body1" 
-            align="center" 
-            sx={{ py: 4 }}
-          >
-            Loading projects...
+        {loading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+            <CircularProgress color="primary" />
+          </Box>
+        ) : error ? (
+          <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
+        ) : projects.length === 0 ? (
+          <Typography variant="body1" align="center" color="text.secondary">
+            No projects to display at the moment.
           </Typography>
         ) : (
           <Grid container spacing={4}>
